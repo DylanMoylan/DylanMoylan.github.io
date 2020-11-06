@@ -114,16 +114,31 @@ export default (ticket) => {
         },
         get activitiesNav() {
             let nav = `
-            <li><a href="#ca-section-2">CME Activities</a></li>
+            <ul class="secondary-nav cag-nav">
+					
+			<li><a href="#ca-section-2">CME Activities</a></li>
+            `
+            if(this.hasPoll) {
+                nav += `
+                    <li><a href="#ca-section-6">Poll</a></li>
+                `
+            }
+            nav += `
+                <li><a href="#ca-section-4">Resources</a></li>
+                <li><a href="#ca-section-5">Committee</a></li>
+
+                </ul>
             `
             if(this.hasMedChallenge) {
-                nav += `<li><a href="#ca-section-3">Med Challenge</a></li>`
+                nav += `
+                    <div class="right-side">
+                        <a href="#ca-section-3">
+                            <img src="//img.medscapestatic.com/pi/cme/uat/MedChallenge2.png" alt="" id="medchallenge-logo">
+                                <span id="play-now-menu" class="play-tag">PLAY NOW</span>
+                        </a>
+					</div>
+                `
             }
-            if(this.hasPoll) {
-                nav += `<li><a href="#ca-section-6">Poll</a></li>`
-            }
-            nav += `<li><a href="#ca-section-4">Resources</a></li>
-                    <li><a href="#ca-section-5">Committee</a></li>`
             return nav
         },
         get slideKits() {
@@ -140,11 +155,7 @@ export default (ticket) => {
                 `
             }
             slideKeys.forEach(key => {
-                let slide = slideKits[key]
-                output += `
-                    <li class="cag-dl"><a href="/px/trk.svr/adv-${this.url}?exturl=https://img.medscape.com/pi/adv-handouts/${this.url}/32977-sk-ca-${key.substring(0,1)}-1.pptx">${slide.title}</a>
-                    <p>${slide.teaser}</p></li>
-                `
+                output += this.slideKitSnippet(key)
             })
             if(slideKeys.length) {
                 output += `
@@ -169,10 +180,7 @@ export default (ticket) => {
                 `
             }
             articleKeys.forEach(key => {
-                let article = articles[key]
-                output += `
-                    <li class="cag-link"><a href="/px/trk.svr/adv-${this.url}?exturl=https://dx.doi.org/${article.url}">${article.title}</a></li>
-                `
+                output += this.referenceSnippet(key)
             })
             if(articleKeys.length){
                 output += `
@@ -197,10 +205,7 @@ export default (ticket) => {
                 `
             }
             linkKeys.forEach(key => {
-                let link = links[key]
-                output += `
-                    <li class="cag-link"><a href="/px/trk.svr/adv-${this.url}?exturl=${this.urlPrefix(link.url)}">${link.title}</a></li>
-                `
+                output += this.linkSnippet(key)
             })
             if(linkKeys.length){
                 output += `
@@ -216,36 +221,7 @@ export default (ticket) => {
             let output = ''
             let medChallengeKeys = Object.keys(medChallenges)
             medChallengeKeys.forEach(key => {
-                let medChallenge = medChallenges[key]
-                let typeSection = ''
-                switch(medChallenge.type) {
-                    case 'Case Review':
-                        typeSection = `<p class="text-uppercase font-blue">  <img src="//<medscape:domain type='imageServer'/>/pi/cme/advances/icons/icon-case_review.svg" alt=""><span class="text-category">Case Review</span></p>`
-                        break
-                    case 'Rapid Type':
-                        typeSection = `<p class="text-uppercase font-orange">  <img src="https://img.medscapestatic.com/pi/cme/advances/icons/icon-rapid_fire.svg" alt=""><span class="text-category">Rapid Fire</span></p>`
-                        break
-                    case 'Image Review':
-                        typeSection = `<p class="text-uppercase font-blue">  <img src="https://img.medscapestatic.com/pi/cme/advances/icons/icon-image_review.svg" alt=""><span class="text-category">Image Review</span></p>`
-                        break
-                    default:
-                        typeSection = `<p class="text-uppercase font-blue">  <img src="//<medscape:domain type='imageServer'/>/pi/cme/advances/icons/icon-case_review.svg" alt=""><span class="text-category">Case Review</span></p>`
-                        break
-                }
-                output += `
-                    <li class="med-challenge-rounded-edges">
-                        <a href="${this.urlPrefix(medChallenge.url)}" target="_blank">  
-                        <div class="activityTitle med-challenge-card-title"> 
-                            ${typeSection}
-                            <p class="title">${medChallenge.title}</p>
-                        </div>
-                        <div class="teaser">${medChallenge.subtitle}</div>
-                        <div class="activityData">
-                                <span class="play-tag">Play Now</span>
-                        </div>
-                        </a>
-                    </li>
-                `
+                output += this.medChallengeSnippet(key)
             })
             if(medChallengeKeys.length < 4){
                 for(let i = medChallengeKeys.length + 1; i <= 4; i++){
@@ -382,6 +358,152 @@ export default (ticket) => {
             })
             return output
 
+        },
+        medChallengeSnippet: function(key) {
+            let medChallenge, output = ''
+            if(key == 'empty'){
+                medChallenge = {
+                    type: 'all',
+                    title: 'REPLACE_TITLE',
+                    subtitle: 'REPLACE_SUBTITLE',
+                    url: 'REPLACE_URL'
+                }
+            }else{
+                medChallenge = _.get(ticket, ['medChallenges', 'medChallenge','fields', key], {})
+            }
+            let typeSection = ''
+            switch(medChallenge.type) {
+                case 'Case Review':
+                    typeSection = `<p class="text-uppercase font-blue">  <img src="//<medscape:domain type='imageServer'/>/pi/cme/advances/icons/icon-case_review.svg" alt=""><span class="text-category">Case Review</span></p>`
+                    break
+                case 'Rapid Type':
+                    typeSection = `<p class="text-uppercase font-orange">  <img src="https://img.medscapestatic.com/pi/cme/advances/icons/icon-rapid_fire.svg" alt=""><span class="text-category">Rapid Fire</span></p>`
+                    break
+                case 'Image Review':
+                    typeSection = `<p class="text-uppercase font-blue">  <img src="https://img.medscapestatic.com/pi/cme/advances/icons/icon-image_review.svg" alt=""><span class="text-category">Image Review</span></p>`
+                    break
+                default:
+                    typeSection = `
+                        <%-- CHOOSE 1: --%>
+                        <%-- CASE REVIEW: 
+                        <p class="text-uppercase font-blue">  <img src="//<medscape:domain type='imageServer'/>/pi/cme/advances/icons/icon-case_review.svg" alt=""><span class="text-category">Case Review</span></p>
+                            /CASE REVIEW --%>
+
+                        <%-- RAPID FIRE: 
+                        <p class="text-uppercase font-orange">  <img src="https://img.medscapestatic.com/pi/cme/advances/icons/icon-rapid_fire.svg" alt=""><span class="text-category">Rapid Fire</span></p>
+                            /RAPID FIRE --%>
+                        
+                        <%-- IMAGE REVIEW: 
+                        <p class="text-uppercase font-blue">  <img src="https://img.medscapestatic.com/pi/cme/advances/icons/icon-image_review.svg" alt=""><span class="text-category">Image Review</span></p>
+                            /IMAGE REVIEW --%>
+                    `
+                    break
+            }
+            output = `
+                <li class="med-challenge-rounded-edges">
+                    <a href="${this.urlPrefix(medChallenge.url)}" target="_blank">  
+                    <div class="activityTitle med-challenge-card-title"> 
+                        ${typeSection}
+                        <p class="title">${medChallenge.title}</p>
+                    </div>
+                    <div class="teaser">${medChallenge.subtitle}</div>
+                    <div class="activityData">
+                            <span class="play-tag">Play Now</span>
+                    </div>
+                    </a>
+                </li>
+            `
+            return output
+        },
+        slideKitSnippet: function(key) {
+            let slide, output = ''
+            if(key == 'empty'){
+                output += `
+                <div class="cag-resources-card">
+                    <div class="cag-resources-card-top cag-resources-card-top-1"></div>
+                    <div class="cag-resources-card-content">
+                    <div class="cag-content-title">Downloadable Slide Kit</div>
+                    <ul class="cag-content-lists">
+                `
+                slide = {
+                    title: 'REPLACE_TITLE',
+                    teaser: 'REPLACE_TEASER'
+                }
+            }else{
+                slide = _.get(ticket, ['relatedResources', 'slideKits','fields', key], {})
+            }
+            output += `
+                <li class="cag-dl">
+                    <a href="/px/trk.svr/adv-${this.url}?exturl=https://img.medscape.com/pi/adv-handouts/${this.url}/32977-sk-ca-${key.substring(0,1)}-1.pptx">${slide.title}</a>
+                    <p>${slide.teaser}</p>
+                </li>
+            `
+            if(key == 'empty'){
+                output += `
+                            </ul>
+                        </div>
+                    </div> <!-- end card -->
+                `
+            }
+            return output
+        },
+        referenceSnippet: function(key) {
+            let article, output = ''
+            if(key == 'empty'){
+                output += `
+                <div class="cag-resources-card">
+                <div class="cag-resources-card-top cag-resources-card-top-2"></div>
+                <div class="cag-resources-card-content">
+                    <div class="cag-content-title">Clinical Articles</div>
+                    <ul class="cag-content-lists">
+            `
+                article = {
+                    title: 'REPLACE_TITLE',
+                    url: 'REPLACE_URL'
+                }
+            }else{
+                article = _.get(ticket, ['relatedResources', 'clinicalReferenceArticles','fields', key], {})
+            }
+            output += `
+                <li class="cag-link"><a href="/px/trk.svr/adv-${this.url}?exturl=https://dx.doi.org/${article.url}">${article.title}</a></li>
+            `
+            if(key == 'empty'){
+                output += `
+                            </ul>
+                        </div>
+                    </div> <!-- end card -->
+                `
+            }
+            return output
+        },
+        linkSnippet: function(key) {
+            let link, output = ''
+            if(key == 'empty'){
+                output += `
+                    <div class="cag-resources-card">
+                    <div class="cag-resources-card-top cag-resources-card-top-5"></div>
+                    <div class="cag-resources-card-content">
+                        <div class="cag-content-title">Related Links</div>
+                        <ul class="cag-content-lists">
+                `
+                link = {
+                    title: 'REPLACE_TITLE',
+                    url: 'REPLACE_URL'
+                }
+            }else{
+                link = _.get(ticket, ['relatedResources', 'relatedLinks','fields', key], {})
+            }
+            output += `
+                <li class="cag-link"><a href="/px/trk.svr/adv-${this.url}?exturl=${this.urlPrefix(link.url)}">${link.title}</a></li>
+            `
+            if(key == 'empty'){
+                output += `
+                            </ul>
+                        </div>
+                    </div> <!-- end card -->
+                `
+            }
+            return output
         },
         urlPrefix: (url) => {
             if(!/[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(url)){

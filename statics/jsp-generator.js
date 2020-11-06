@@ -139,14 +139,9 @@ export default (generator) => {
 		
 			<div class="ca-section-secondary-nav js-sticky-nav cag-nav-wrapper">
 			<nav class="container">
-				<ul class="secondary-nav cag-nav">
-					
+
 					${generator.activitiesNav}
 
-				</ul>
-				<div class="right-side">
-					<a href="#ca-section-3"><img src="//img.medscapestatic.com/pi/cme/uat/MedChallenge2.png" alt="" id="medchallenge-logo"><span id="play-now-menu" class="play-tag">PLAY NOW</span></a>
-					</div>
             </nav>
 		</div>
 
