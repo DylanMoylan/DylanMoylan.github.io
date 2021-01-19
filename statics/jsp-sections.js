@@ -306,22 +306,22 @@ export default (ticket) => {
                 }
                 if(contributor.advisorConsultant && contributor.advisorConsultant.length) {
                     advisorConsultant = `<p>Served as an advisor or consultant for: ${
-                        contributor.advisorConsultant.join('; ')
+                        contributor.advisorConsultant
                     }</p>`
                 }
                 if(contributor.grants && contributor.grants.length) {
                     grants = `<p>Received grants for clinical research from: ${
-                        contributor.grants.join('; ')
+                        contributor.grants
                     }</p>`
                 }
                 if(contributor.ownsStock && contributor.ownsStock.length) {
                     ownsStock = `<p>Owns stock, stock options, or bonds from: ${
-                        contributor.ownsStock.join('; ')
+                        contributor.ownsStock
                     }</p>`
                 }
                 if(contributor.speaker && contributor.speaker.length) {
                     speaker = `<p>Served as a speaker or a member of a speakers bureau for: ${
-                        contributor.speaker.join('; ')
+                        contributor.speaker
                     }</p>`
                 }
                 if([other, advisorConsultant, grants, ownsStock, speaker].join('').length){
