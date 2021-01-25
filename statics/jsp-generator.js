@@ -8,7 +8,7 @@ export default (generator) => {
 	<head>
 
 		<%-- Page Title for tab bar, bookmarks, etc --%>
-		<title>${generator.title}</title>
+		<title>${generator.titlePlainText}</title>
 
 		<%-- Meta information for content scrapers, social media and search engines --%>
 		<meta name="description" content="${generator.introduction}" />
@@ -73,7 +73,7 @@ export default (generator) => {
 		
 		<div id="ca-section-1" class="ca-section ca-section--hero">
 			<div class="container">
-				<p class="above-heading">Clinical Advances in</p>
+				<p class="above-heading">${generator.hasCAInTitle ? 'Clinical Advances in' : ''}</p>
 				<h1>${generator.title}</h1>
 				<div class="hero-content cag-wrapper">
 					<div class="cag-left">
@@ -82,12 +82,14 @@ export default (generator) => {
 							<span class="cag-hero-indent"></span>
 							<span class="cag-hero-copy">
 								<p>${generator.teaser}</p>
-								<p>${generator.supporterStatement} <strong>${generator.supporter}</strong> </p>
-								
-								<p>Developed through a partnership between <strong>Medscape</strong> and <strong>University of California, San Diego School of Medicine</strong>
+								<br />
+								<br />
+								<br />
+								<br />
+								<br />
 							</span>
 							<div class="hero-sponsor cag-hero-sponsor" data-rotatespeed="3">
-								<p class="hero-sponsor-text">${generator.supporterStatement} <strong>${generator.supporter}</strong></p>
+								${generator.supporters}
 								<p><img src="//img.medscapestatic.com/pi/cvn/clinical-advances/supporter-badge/REPLACE.png"></p>
 							</div>
 						</div>
@@ -128,10 +130,9 @@ export default (generator) => {
 							</button>
 						</header>
 
-						<%--<div class="modal-content">
-							<h3>Hero section overview header</h3>
-								Hero Overview Content goes here
-						</div>--%>
+						<div class="modal-content">
+							${ generator.introduction }
+						</div>
 					</div>
 				</div>
 

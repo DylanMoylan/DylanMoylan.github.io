@@ -8,8 +8,25 @@ export default (ticket) => {
             if(title === null || title === ''){
                 return 'NO TITLE'
             }else{
+                return title.replace(/Clinical Advances In\s?/i, '')
+            }
+        },
+        get originalTitle() {
+            let title = _.get(ticket, ['clinicalAdvancesPageDetails', 'clinicalAdvancesTitle', 'fields', '1', 'text'], 'INVALID TITLE')
+            if(title === null || title === ''){
+                return 'NO TITLE'
+            }else{
                 return title
             }
+        },
+        get hasCAInTitle() {
+            let title = _.get(ticket, ['clinicalAdvancesPageDetails', 'clinicalAdvancesTitle', 'fields', '1', 'text'], 'INVALID TITLE')
+            return /Clinical Advances In\s?/i.test(title)
+        },
+        get titlePlainText() {
+            let title = document.createElement('div')
+            title.innerHTML = this.originalTitle
+            return title.textContent
         },
         get bucketIDList() {
             let activities = _.get(ticket, ['activities', 'additionalBuckets', 'fields'], {})
@@ -61,6 +78,17 @@ export default (ticket) => {
                 supporter = [{name: 'REPLACE SUPPORTER'}]
             }
             return supporter[0].name
+        },
+        get supporters() {
+            let supporters = _.get(ticket, ['generalInformation', 'selectSupporterAttribution', 'fields', '1', 'supporters'], [{name: 'REPLACE SUPPORTER'}])
+            if(!supporters.length) {
+                supporters = [{name: 'REPLACE SUPPORTER'}]
+            }
+            let html = ''
+            supporters.forEach(supporter => {
+                html += `<p class="hero-sponsor-text">${this.supporterStatement} <strong>${supporter.name}</strong></p>`
+            })
+            return html
         },
         get bucketComment() {
             let buckets = _.get(ticket, ['activities', 'additionalBuckets', 'fields'], {})
@@ -145,7 +173,7 @@ export default (ticket) => {
             let slideKits = _.get(ticket, ['relatedResources', 'slideKits', 'fields'], {})
             let output = ''
             let slideKeys = Object.keys(slideKits)
-            if(slideKeys.length){
+            if(slideKeys.length > 1 || slideKits[1].url.length > 0){
                 output += `
                     <div class="cag-resources-card">
                         <div class="cag-resources-card-top cag-resources-card-top-1"></div>
@@ -153,11 +181,9 @@ export default (ticket) => {
                         <div class="cag-content-title">Downloadable Slide Kit</div>
                         <ul class="cag-content-lists">
                 `
-            }
-            slideKeys.forEach(key => {
-                output += this.slideKitSnippet(key)
-            })
-            if(slideKeys.length) {
+                slideKeys.forEach(key => {
+                    output += this.slideKitSnippet(key)
+                })
                 output += `
                             </ul>
                         </div>
@@ -256,8 +282,22 @@ export default (ticket) => {
             let contributors = _.get(ticket, ['steeringCommittee', 'contributor', 'fields'], {})
             let output = ''
             let contributorKeys = Object.keys(contributors)
+            // let affiliation
+            // function remove_tags(html) {
+            //     html = html.replace(/<br>/g, "$br$");
+            //     html = html.replace(/(?:\r\n|\r|\n)/g, '$br$');
+            //     html = html.replace(/[<][/]div[>]/g, '$br$')
+            //     html = html.replace(/([<]div(?:[^>]+)?[>])/g, '')
+            //     console.log('html: ', html);
+            //     var tmp = document.createElement("DIV");
+            //     tmp.innerHTML = html;
+            //     html = tmp.textContent || tmp.innerText;
+            //     html = html.replace(/\$br\$/g, "<br>");
+            //     return html;
+            // }
             contributorKeys.forEach(key => {
                 let contributor = contributors[key]
+                // affiliation = remove_tags(contributor.affiliations)
                 output += `
                     <div class="committee-member">
 
@@ -306,21 +346,25 @@ export default (ticket) => {
                 }
                 if(contributor.advisorConsultant && contributor.advisorConsultant.length) {
                     advisorConsultant = `<p>Served as an advisor or consultant for: ${
-                        contributor.advisorConsultant
+                       Array.isArray(contributor.advisorConsultant) ? contributor.advisorConsultant.join('; ') :
+                       contributor.advisorConsultant
                     }</p>`
                 }
                 if(contributor.grants && contributor.grants.length) {
                     grants = `<p>Received grants for clinical research from: ${
+                        Array.isArray(contributor.grants) ? contributor.grants.join('; ') :
                         contributor.grants
                     }</p>`
                 }
                 if(contributor.ownsStock && contributor.ownsStock.length) {
                     ownsStock = `<p>Owns stock, stock options, or bonds from: ${
+                        Array.isArray(contributor.ownsStock) ? contributor.ownsStock.join('; ') :
                         contributor.ownsStock
                     }</p>`
                 }
                 if(contributor.speaker && contributor.speaker.length) {
                     speaker = `<p>Served as a speaker or a member of a speakers bureau for: ${
+                        Array.isArray(contributor.speaker) ? contributor.speaker.join('; ') :
                         contributor.speaker
                     }</p>`
                 }
