@@ -283,21 +283,15 @@ export default (ticket) => {
             let output = ''
             let contributorKeys = Object.keys(contributors)
             // let affiliation
-            // function remove_tags(html) {
-            //     html = html.replace(/<br>/g, "$br$");
-            //     html = html.replace(/(?:\r\n|\r|\n)/g, '$br$');
-            //     html = html.replace(/[<][/]div[>]/g, '$br$')
-            //     html = html.replace(/([<]div(?:[^>]+)?[>])/g, '')
-            //     console.log('html: ', html);
-            //     var tmp = document.createElement("DIV");
-            //     tmp.innerHTML = html;
-            //     html = tmp.textContent || tmp.innerText;
-            //     html = html.replace(/\$br\$/g, "<br>");
-            //     return html;
-            // }
+            function remove_tags(html) {
+                return html
+                .replace(/<[^>]+>/g, '<br>')
+                .replace(/(<br>){2,}/g, '<br>')
+                .replace(/^<br[/]?>/, '')
+                .replace(/<br>$/, '')
+            }
             contributorKeys.forEach(key => {
                 let contributor = contributors[key]
-                // affiliation = remove_tags(contributor.affiliations)
                 output += `
                     <div class="committee-member">
 
@@ -309,7 +303,7 @@ export default (ticket) => {
                                 <img class="cag-committee-expand-button" src="//img.medscapestatic.com/pi/cme/advances/icons/committee-up-btn.png" /> 
                                 <h5 class="cag-person-name">${contributor.name}</h5>
                                 <p class="cag-person-title">${contributor.contributorGroup}</p>
-                                <p class="cag-person-details">${contributor.affiliations}<p>
+                                <p class="cag-person-details">${remove_tags(contributor.affiliations)}<p>
                                 <div class="cag-person-links">
                                     <span class="cag-bio-vid-button">Bio Video</span>
                                     <span class="social-link twitter-social-link" data-src="http://www.twitter.com">Twitter</span>
