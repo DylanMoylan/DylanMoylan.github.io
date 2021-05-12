@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const generateJSP = require('./jsp-generator.js')
-export default (ticket) => {
+export default (ticket,  options = {geoTarget: 'US'}) => {
     return {
         ticket,
         get title() {
@@ -281,6 +281,7 @@ export default (ticket) => {
         get contributors() {
             let contributors = _.get(ticket, ['steeringCommittee', 'contributor', 'fields'], {})
             let output = ''
+            let headshotURL
             let contributorKeys = Object.keys(contributors)
             // let affiliation
             function remove_tags(html) {
@@ -291,12 +292,17 @@ export default (ticket) => {
                 .replace(/<br>$/, '')
             }
             contributorKeys.forEach(key => {
-                let contributor = contributors[key]
+                headshotURL = this.getHeadshots(key)
+                let contributor = Object.assign({
+                    name: '',
+                    contributorGroup: '',
+                    affiliations: ''
+                }, contributors[key])
                 output += `
                     <div class="committee-member">
 
                             <div class="cag-member-avatar">
-                                <img src="//img.medscapestatic.com/person/REPLACE.jpg" alt="${contributor.name}">
+                                <img src="${headshotURL}" alt="${contributor.name}">
                             </div>
                         
                             <div class="cag-person-info">
@@ -333,43 +339,31 @@ export default (ticket) => {
             let output = ''
             Object.keys(contributors).forEach(key => {
                 let contributor = contributors[key]
-                let advisorConsultant = '', grants = '', ownsStock = '', speaker = '', other = '', 
-                statement = '<p>Has disclosed no relevant financial relationships.</p>'
-                if(contributor.other && contributor.other.length) {
-                    other = `<p>Other: ${contributor.other}</p>`
+                let statement = '<p>Has disclosed no relevant financial relationships.</p>'
+                let statements = {
+                    advisorConsultant: 'Served as an advisor or consultant for:',
+                    speaker: 'Served as a speaker or a member of a speakers bureau for:',
+                    grants: "Received grants for clinical research from:",
+                    ownsStock: "Owns stock, stock options, or bonds from:",
+                    royalties: "Royalties or patient beneficiary:",
+                    employed: "Formerly employed by an ineligible company:",
+                    ownership: "Ownership of an ineligible company:",
+                    other: "Other:"
                 }
-                if(contributor.advisorConsultant && contributor.advisorConsultant.length) {
-                    advisorConsultant = `<p>Served as an advisor or consultant for: ${
-                       Array.isArray(contributor.advisorConsultant) ? contributor.advisorConsultant.join('; ') :
-                       contributor.advisorConsultant
-                    }</p>`
-                }
-                if(contributor.grants && contributor.grants.length) {
-                    grants = `<p>Received grants for clinical research from: ${
-                        Array.isArray(contributor.grants) ? contributor.grants.join('; ') :
-                        contributor.grants
-                    }</p>`
-                }
-                if(contributor.ownsStock && contributor.ownsStock.length) {
-                    ownsStock = `<p>Owns stock, stock options, or bonds from: ${
-                        Array.isArray(contributor.ownsStock) ? contributor.ownsStock.join('; ') :
-                        contributor.ownsStock
-                    }</p>`
-                }
-                if(contributor.speaker && contributor.speaker.length) {
-                    speaker = `<p>Served as a speaker or a member of a speakers bureau for: ${
-                        Array.isArray(contributor.speaker) ? contributor.speaker.join('; ') :
-                        contributor.speaker
-                    }</p>`
-                }
-                if([other, advisorConsultant, grants, ownsStock, speaker].join('').length){
+                let parsedDisclosures = Object.keys(statements).reduce((acc, key) => {
+                    if(Object.keys(contributor).includes(key) && contributor[key].length){
+                        acc += `<p>${statements[key]} ${Array.isArray(contributor[key]) ? contributor[key].join('; ') : contributor[key]}</p>\n`
+                    }
+                    return acc
+                }, '')
+                if(parsedDisclosures.length) {
                     statement = `<p>Has disclosed the following relevant financial relationships:</p>`
                 }
                 output += `
                     <div class="disclosures-person">
                         <div class="disclosures-person-header">
                             <div class="disclosures-person-avatar">
-                                <img src="//img.medscapestatic.com/person/REPLACE.jpg" alt="${contributor.name}">
+                                <img src="${this.getHeadshots(key)}" alt="${contributor.name}">
                             </div>
                             <div class="disclosures-person-info">
                                 <h5 class="disclosures-person-name">${contributor.name}</h5>
@@ -379,11 +373,7 @@ export default (ticket) => {
 
                         <div class="disclosures-person-content">
                             ${statement}
-                            ${advisorConsultant}
-                            ${speaker}
-                            ${grants}
-                            ${ownsStock}
-                            ${other}
+                            ${parsedDisclosures}
 
 
                         </div>
@@ -396,6 +386,14 @@ export default (ticket) => {
             })
             return output
 
+        },
+        get qnaID() {
+            let qna = _.get(ticket, ['onlineProduction', 'qnaID', 'fields', '1', 'text'], 'REPLACE')
+            return qna.length ? qna : 'REPLACE'
+        },
+        get bannerURL() {
+            let url = _.get(ticket, ['onlineProduction', 'bannerURL', 'fields', '1', 'url'], 'https://img.medscapestatic.com/pi/cme/uat/temp-bg.png')
+            return url.length ? url : 'https://img.medscapestatic.com/pi/cme/uat/temp-bg.png'
         },
         medChallengeSnippet: function(key) {
             let medChallenge, output = ''
@@ -452,6 +450,13 @@ export default (ticket) => {
                 </li>
             `
             return output
+        },
+        getHeadshots: function(key) {
+            let headshotURL = _.get(ticket, ['onlineProduction', 'thumbnailURL', 'fields', '1', key], '//img.medscapestatic.com/person/REPLACE.jpg')
+            if(!headshotURL.length) {
+                headshotURL = '//img.medscapestatic.com/person/REPLACE.jpg'
+            }
+            return headshotURL.replace(/^https?/, '')
         },
         slideKitSnippet: function(key) {
             let slide, output = ''

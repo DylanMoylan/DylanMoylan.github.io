@@ -203,7 +203,7 @@ export default (generator) => {
                                   <td valign="top" height="32" style="line-height:32px;"><img style="display:block;" height="1" src="https://img.medscapestatic.com/pi/global/ornaments/spacer.gif" width="1" border="0"></td>
                                 </tr>
                                 <tr>
-                                  <td valign="top" align="center"><img width="128" height="175" src="https://img.medscapestatic.com/person/dodick_david_w_CA.jpg" style="display:block; margin:0; padding:0" border="0"></td>
+                                  <td valign="top" align="center"><img width="128" height="175" src="${generator.committeeChairHeadShot}" style="display:block; margin:0; padding:0" border="0"></td>
                                 </tr>
                                 <tr>
                                   <td valign="top" class="mobile-spacer" style="display:none; overflow:hidden; line-height:0"><img style="display:block;" height="1" src="https://img.medscapestatic.com/pi/global/ornaments/spacer.gif" width="1" border="0"></td>

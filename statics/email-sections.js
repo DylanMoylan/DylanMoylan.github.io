@@ -173,6 +173,19 @@ export default (ticket, options = {geoTarget: 'US'}) => {
         let chair = contributors.find(contributor => contributor.contributorGroup && contributor.contributorGroup == 'Steering Committee Chair')
         return chair ? chair.name : 'Faculty Name'
       },
+      get committeeChairHeadShot() {
+        let contributors = _.get(ticket, ['steeringCommittee', 'contributor', 'fields'], {})
+        let headshot
+        let chair = Object.keys(contributors).find(key => contributors[key].contributorGroup && contributors[key].contributorGroup == 'Steering Committee Chair')
+        if(chair) {
+          headshot = _.get(ticket, ['onlineProduction', 'facultyImages', 'fields', '1', chair], 'https://img.medscapestatic.com/person/dodick_david_w_CA.jpg')
+        }
+        if(headshot && headshot.length) {
+          return this.parseURL(headshot)
+        }else{
+          return 'https://img.medscapestatic.com/person/dodick_david_w_CA.jpg'
+        }
+      },
       get steeringCommittee() {
         let contributors = _.get(ticket, ['steeringCommittee', 'contributor', 'fields'], {1: {contributorGroup: 'Steering Committee Chair', name: 'Faculty Name'}})
         contributors = Object.keys(contributors).map(key => contributors[key])
@@ -222,6 +235,7 @@ export default (ticket, options = {geoTarget: 'US'}) => {
       },
       get activities() {
         let buckets = _.get(ticket, ['activities', 'additionalBuckets', 'fields'], {})
+        let thumbnail
         return Object.keys(buckets)
         .map(key => buckets[key].activities)
         .reduce((prev, curr) => {
@@ -230,7 +244,11 @@ export default (ticket, options = {geoTarget: 'US'}) => {
             currentActivities = currentActivities.filter(key => options.activities.includes(key))
           }
           currentActivities.forEach(key => {
-            prev.push(curr[key])
+            thumbnail = _.get(ticket, ['onlineProduction', 'thumbnailURL', 'fields', 1, key], 'https://img.medscapestatic.com/thumbnail_library/938870.jpg')
+            if(!thumbnail || !thumbnail.length){
+              thumbnail = 'https://img.medscapestatic.com/thumbnail_library/938870.jpg'
+            }
+            prev.push(Object.assign({ thumbnail }, curr[key]))
           })
           return prev
         }, [])
@@ -248,7 +266,7 @@ export default (ticket, options = {geoTarget: 'US'}) => {
                     
                     <table width="192" class="table2" border="0" cellspacing="0" cellpadding="0" style="padding:0; margin:0" align="left">
                       <tr>
-                        <td valign="top" class="element-align"><a style="color:#020202; text-decoration:none" href="https://www.medscape.org/sites/advances/${this.relativeURL}?src=mkmcmr_driv_clinad_mscpedu_%%=FormatDate(NOW(1),'YYMMDD')=%%&uac=%%UAC%%#ca-section-2" target="_blank"><img src="https://img.medscapestatic.com/thumbnail_library/938870.jpg?interpolation=lanczos-none&resize=192:108" alt="Enable images to view" name="img" width="192" height="108" class="img" style="display:inline-block; font-family:Arial, Helvetica, sans-serif, 'Proxima Nova Rg'; font-size:10px; line-height:16px; white-space:pre" border="0"></a></td>
+                        <td valign="top" class="element-align"><a style="color:#020202; text-decoration:none" href="https://www.medscape.org/sites/advances/${this.relativeURL}?src=mkmcmr_driv_clinad_mscpedu_%%=FormatDate(NOW(1),'YYMMDD')=%%&uac=%%UAC%%#ca-section-2" target="_blank"><img src="${this.parseURL(curr.thumbnail)}?interpolation=lanczos-none&resize=192:108" alt="Enable images to view" name="img" width="192" height="108" class="img" style="display:inline-block; font-family:Arial, Helvetica, sans-serif, 'Proxima Nova Rg'; font-size:10px; line-height:16px; white-space:pre" border="0"></a></td>
                       </tr>
                     </table>
                     
@@ -311,6 +329,14 @@ export default (ticket, options = {geoTarget: 'US'}) => {
       },
       output: () => {
           return generateEmail(this)
+      },
+      parseURL: (url) => {
+        if (!/^https?:\/\//i.test(url) && !/^\/\//.test(url)) {
+              url = 'http://' + url;
+        }else if(/^\/\//.test(url)){
+          url = 'https:' + url
+        }
+        return url
       }
   }
 }

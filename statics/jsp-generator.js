@@ -49,7 +49,7 @@ export default (generator) => {
 		<style>
 
 			.ca-section--hero {
-				  background-image: url("https://img.medscapestatic.com/pi/cme/uat/temp-bg.png"); 
+				  background-image: url("${generator.bannerURL}"); 
 				  -webkit-background-size: cover;
 				  -moz-background-size: cover;
 				  -o-background-size: cover;
@@ -280,7 +280,7 @@ export default (generator) => {
 				<h2>Polling Question</h2>
 
 				<%-- Polling Question Tag - Must have all arguments --%>
-				<div class="qna-render" data-formid="1" data-render="1" data-curpage="1" data-totalpages="1" data-questionnaireid="50016"></div>
+				<div class="qna-render" data-formid="1" data-render="1" data-curpage="1" data-totalpages="1" data-questionnaireid="${generator.qnaID}"></div>
   
 			</div>
 		</div>
