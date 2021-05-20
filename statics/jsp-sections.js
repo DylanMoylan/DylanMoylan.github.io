@@ -281,7 +281,7 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
         get contributors() {
             let contributors = _.get(ticket, ['steeringCommittee', 'contributor', 'fields'], {})
             let output = ''
-            let headshotURL
+            let headshotURL, bioVideo
             let contributorKeys = Object.keys(contributors)
             // let affiliation
             function remove_tags(html) {
@@ -293,6 +293,7 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
             }
             contributorKeys.forEach(key => {
                 headshotURL = this.getHeadshots(key)
+                bioVideo = this.getBioVideo(key)
                 let contributor = Object.assign({
                     name: '',
                     contributorGroup: '',
@@ -322,8 +323,8 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
                                     class="committee-bio-video" controls="" 
                                     preload="metadata" 
                                     controlslist="nodownload" 
-                                    data-poster="https://img.medscapestatic.com/thumbnail_library/mobile_start/org/2018/894089_4_start.png" 
-                                    data-source="http://webmd-a.akamaihd.net/delivery/delivery/6c/ed/6ced42a3-34df-491e-befe-8e51a61991be/894089_4v2_1000k.mp4">
+                                    data-poster="${bioVideo.posterURL}" 
+                                    data-source="${bioVideo.videoURL}">
                                 </video>
                             </div>
                             
@@ -395,6 +396,14 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
             let url = _.get(ticket, ['onlineProduction', 'bannerURL', 'fields', '1', 'url'], 'https://img.medscapestatic.com/pi/cme/uat/temp-bg.png')
             return url.length ? url : 'https://img.medscapestatic.com/pi/cme/uat/temp-bg.png'
         },
+        get videoPreviewImg() {
+            let img = _.get(ticket, ['onlineProduction', 'videoInfo', 'fields', '1', 'img'], 'https://img.medscapestatic.com/pi/cme/uat/vid-poster-image.png')
+            return img.length ? img : 'https://img.medscapestatic.com/pi/cme/uat/vid-poster-image.png'
+        },
+        get videoSrc() {
+            let url = _.get(ticket, ['onlineProduction', 'videoInfo', 'fields', '1', 'src'], 'http://webmd-a.akamaihd.net/delivery/delivery/aws/52/42/524280c1-234c-3680-a4cd-c7641c10b301/pated-intro-2020_1000k.mp4')
+            return url.length ? url : 'http://webmd-a.akamaihd.net/delivery/delivery/aws/52/42/524280c1-234c-3680-a4cd-c7641c10b301/pated-intro-2020_1000k.mp4'
+        },
         medChallengeSnippet: function(key) {
             let medChallenge, output = ''
             if(key == 'empty'){
@@ -452,11 +461,25 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
             return output
         },
         getHeadshots: function(key) {
-            let headshotURL = _.get(ticket, ['onlineProduction', 'thumbnailURL', 'fields', '1', key], '//img.medscapestatic.com/person/REPLACE.jpg')
+            let headshotURL = _.get(ticket, ['onlineProduction', 'facultyResources', 'fields', '1', 'faculty', key, 'img'], '//img.medscapestatic.com/person/REPLACE.jpg')
             if(!headshotURL.length) {
                 headshotURL = '//img.medscapestatic.com/person/REPLACE.jpg'
             }
-            return headshotURL.replace(/^https?/, '')
+            return headshotURL.replace(/^https?:/, '')
+        },
+        getBioVideo: function(key) {
+            let videoURL = _.get(ticket, ['onlineProduction', 'facultyResources', 'fields', '1', 'faculty', key, 'videoURL'], 'http://webmd-a.akamaihd.net/delivery/delivery/6c/ed/6ced42a3-34df-491e-befe-8e51a61991be/894089_4v2_1000k.mp4')
+            if(!videoURL.length) {
+                videoURL = 'http://webmd-a.akamaihd.net/delivery/delivery/6c/ed/6ced42a3-34df-491e-befe-8e51a61991be/894089_4v2_1000k.mp4'
+            }
+            let posterURL = _.get(ticket, ['onlineProduction', 'facultyResources', 'fields', '1', 'faculty', key, 'videoImg'], 'https://img.medscapestatic.com/thumbnail_library/mobile_start/org/2018/894089_4_start.png')
+            if(!posterURL.length) {
+                posterURL = 'http://webmd-a.akamaihd.net/delivery/delivery/6c/ed/6ced42a3-34df-491e-befe-8e51a61991be/894089_4v2_1000k.mp4'
+            }
+            return {
+                videoURL,
+                posterURL
+            }
         },
         slideKitSnippet: function(key) {
             let slide, output = ''

@@ -100,8 +100,8 @@ export default (generator) => {
 								controls="" 
 								preload="metadata" 
 								controlslist="nodownload" 
-								poster="https://img.medscapestatic.com/pi/cme/uat/vid-poster-image.png" 
-								src="http://webmd-a.akamaihd.net/delivery/delivery/aws/52/42/524280c1-234c-3680-a4cd-c7641c10b301/pated-intro-2020_1000k.mp4">
+								poster="${generator.videoPreviewImg}" 
+								src="${generator.videoSrc}">
 							</video>
 						</div>
 					</div>
