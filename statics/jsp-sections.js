@@ -99,8 +99,25 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
             return comment
         },
         get activitiesList() {
-            let buckets = _.get(ticket, ['activities', 'additionalBuckets', 'fields'], {})
-            let html = ''
+            const buckets = _.get(ticket, ['activities', 'additionalBuckets', 'fields'], {})
+            const thumbnails = _.get(ticket, ['onlineProduction', 'thumbnailURL', 'fields', '1'], {})
+            let thumbnail, html = ''
+            const getThumbnail = (key, url) => {
+                if(thumbnails.hasOwnProperty(key) && thumbnails[key].length){
+                    return this.urlPrefix(thumbnails[key])
+                }else {
+                    if(url && url.length) {
+                        let activityID = url.match(/[0-9]+$/) 
+                        if(activityID && activityID.length) {
+                            return `//img.medscapestatic.com/thumbnail_library/${activityID}.jpg`
+                        }else{
+                            return 'https://img.medscapestatic.com/thumbnail_library/842629.jpg'
+                        }
+                    }else{
+                        return 'https://img.medscapestatic.com/thumbnail_library/842629.jpg'
+                    }
+                }
+            }
             Object.values(buckets).forEach(field => {
                 html += `
                 <div class="cag-activity-header">${field.title && field.title.length ? field.title : 'TITLE'}</div>
@@ -109,6 +126,7 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
 
                 `
                 Object.keys(field.activities).forEach(key => {
+                    thumbnail = getThumbnail(key)
                     let item = field.activities[key]
                     html += `
                         <li>
@@ -119,7 +137,7 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
                             <div class="teaser">${item.teaser}</div>
                             <div class="activityImage">
                                 <a href="${this.urlPrefix(item.url)}">        
-                                <span data-src="https://img.medscapestatic.com/thumbnail_library/842629.jpg" data-alt="${item.activityTitle}" class="featimgVar"></span></a>
+                                <span data-src="${getThumbnail(key, item.url)}" data-alt="${item.activityTitle}" class="featimgVar"></span></a>
                             </div>
                             <div class="activityData">
                                 <div class="credit_type_1"><span class="credit-amount">1.5</span> <span class="credit-type">CME</span></div>
@@ -173,7 +191,7 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
             let slideKits = _.get(ticket, ['relatedResources', 'slideKits', 'fields'], {})
             let output = ''
             let slideKeys = Object.keys(slideKits)
-            if(slideKeys.length > 1 || slideKits[1].url.length > 0){
+            if(slideKeys.length > 1 || slideKits[1].download && slideKits[1].download.length > 0){
                 output += `
                     <div class="cag-resources-card">
                         <div class="cag-resources-card-top cag-resources-card-top-1"></div>
@@ -482,7 +500,7 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
             }
         },
         slideKitSnippet: function(key) {
-            let slide, output = ''
+            let slide, output = '', title = 'REPLACE_TITLE', download = 'REPLACE_URL'
             if(key == 'empty'){
                 output += `
                 <div class="cag-resources-card">
@@ -492,16 +510,17 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
                     <ul class="cag-content-lists">
                 `
                 slide = {
-                    title: 'REPLACE_TITLE',
-                    teaser: 'REPLACE_TEASER'
+                    title,
+                    teaser: '',
+                    download
                 }
             }else{
                 slide = _.get(ticket, ['relatedResources', 'slideKits','fields', key], {})
             }
             output += `
                 <li class="cag-dl">
-                    <a href="/px/trk.svr/adv-${this.url}?exturl=https://img.medscape.com/pi/adv-handouts/${this.url}/32977-sk-ca-${key.substring(0,1)}-1.pptx">${slide.title}</a>
-                    <p>${slide.teaser}</p>
+                    <a href="${slide.download && slide.download.length ? slide.download : download}">${slide.title && slide.title.length ? slide.title : title}</a>
+                    ${slide.teaser && slide.teaser.length ? `<p>${slide.teaser}</p>` : ''}
                 </li>
             `
             if(key == 'empty'){
@@ -574,8 +593,8 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
         urlPrefix: (url) => {
             if(!/[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(url)){
                 return 'REPLACE URL: ' + url
-            }else if (!/^https?:\/\//i.test(url)) {
-                return 'https://' + url
+            }else if (!/^(https?:)?\/\//i.test(url)) {
+                return '//' + url
             }
             return url
         },
