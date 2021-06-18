@@ -190,8 +190,14 @@ export default (ticket,  options = {geoTarget: 'US'}) => {
         get slideKits() {
             let slideKits = _.get(ticket, ['relatedResources', 'slideKits', 'fields'], {})
             let output = ''
-            let slideKeys = Object.keys(slideKits)
-            if(slideKeys.length > 1 || slideKits[1].download && slideKits[1].download.length > 0){
+            let slideKeys = Object.keys(slideKits).filter(key => {
+                if(slideKits[key].hasOwnProperty('active')){
+                    return slideKits[key].active
+                }else{
+                    return true
+                }
+            })
+            if(slideKeys.length > 1 || slideKits[1].download && slideKits[1].download.length > 0 || slideKits[1].title && slideKits[1].title.length > 0){
                 output += `
                     <div class="cag-resources-card">
                         <div class="cag-resources-card-top cag-resources-card-top-1"></div>
